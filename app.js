@@ -5,6 +5,19 @@ var budgetController = (function() {
         this.id = id;
         this.description = description;
         this.value = value;
+        this.percentage = -1;
+    };
+
+    Expense.prototype.calcPercentage = function(totalIncome) {
+        if (totalIncome > 0) {
+            this.percentage = Math.round((this.value / totalIncome) * 100);
+        } else {
+            this.percentage = -1;
+        }
+    };
+
+    Expense.prototype.getPercentage = function() {
+        return this.percentage;
     };
 
     var Income = function(id, description, value) {
@@ -92,6 +105,19 @@ var budgetController = (function() {
                 data.expPercentage = -1;
             }
 
+        },
+
+        calculateExpItemPercentages: function() {
+            data.allItems.exp.forEach(function(cur) {
+                cur.calcPercentage(data.totals.inc);
+            });
+        },
+
+        getExpItemsPercentages: function() {
+            var allPerc = data.allItems.exp.map(function(cur) {
+                return cur.getPercentage();
+            });
+            return allPerc;
         },
 
         getBudget: function() {
@@ -230,6 +256,19 @@ var controller = (function(budgetCtrl, UICtrl) {
         UICtrl.displayBudget(budget);
     };
 
+    var updateExpItemPercentages = function() {
+
+        // 1. Calculate percentages
+        budgetCtrl.calculateExpItemPercentages();
+
+        // 2. Read percentages from budget controller
+        var expItemsPercentages = budgetCtrl.getExpItemsPercentages();
+
+        // 3. Update UI with new percentages
+        console.log(expItemsPercentages);
+
+    };
+
     var ctrlAddItem = function() {
         var input, newItem;
 
@@ -248,6 +287,9 @@ var controller = (function(budgetCtrl, UICtrl) {
 
             // 5. Calculate & update budget
             updateBudget();
+
+            // 6. Calculate & update exp item percentages
+            updateExpItemPercentages();
         }
     };
 
@@ -270,6 +312,9 @@ var controller = (function(budgetCtrl, UICtrl) {
 
             // 3. Udate and show new budget
             updateBudget();
+
+            // 4. Calculate & update exp item percentages
+            updateExpItemPercentages();
         }
 
     };
